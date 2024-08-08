@@ -1,4 +1,6 @@
-service:
+version: '3'
+
+services:
   db:
     image: postgres:latest
     restart: unless-stopped
