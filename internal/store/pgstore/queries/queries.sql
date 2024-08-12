@@ -17,8 +17,8 @@ LIMIT $1
 OFFSET $2;
 
 -- name: CreateRoom :one
-INSERT INTO rooms (id, theme, name)
-VALUES ($1, $2, $3)
+INSERT INTO rooms (theme, name)
+VALUES ($1, $2)
 RETURNING *;
 
 -- name: DeleteRoom :exec

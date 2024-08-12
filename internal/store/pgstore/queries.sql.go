@@ -56,19 +56,18 @@ func (q *Queries) AnswerMessage(ctx context.Context, id uuid.UUID) (Message, err
 }
 
 const createRoom = `-- name: CreateRoom :one
-INSERT INTO rooms (id, theme, name)
-VALUES ($1, $2, $3)
+INSERT INTO rooms (theme, name)
+VALUES ($1, $2)
 RETURNING id, theme, name
 `
 
 type CreateRoomParams struct {
-	ID    uuid.UUID
 	Theme string
 	Name  string
 }
 
 func (q *Queries) CreateRoom(ctx context.Context, arg CreateRoomParams) (Room, error) {
-	row := q.db.QueryRow(ctx, createRoom, arg.ID, arg.Theme, arg.Name)
+	row := q.db.QueryRow(ctx, createRoom, arg.Theme, arg.Name)
 	var i Room
 	err := row.Scan(&i.ID, &i.Theme, &i.Name)
 	return i, err
