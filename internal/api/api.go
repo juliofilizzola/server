@@ -4,12 +4,46 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/juliofilizzola/server/internal/store/pgstore"
 )
 
 type apiHandler struct {
 	queries *pgstore.Queries
 	r       *chi.Mux
+}
+
+func (a apiHandler) handleCreateRoom(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (a apiHandler) handleGetRoom(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (a apiHandler) handleGetMessages(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (a apiHandler) handleGetMessage(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (a apiHandler) handleReactToMessage(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (a apiHandler) handleRemoveReaction(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (a apiHandler) handleMarkAsAnswered(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (a apiHandler) handleSubscribe(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func (a apiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -22,6 +56,35 @@ func NewHandler(q *pgstore.Queries) http.Handler {
 	}
 	r := chi.NewRouter()
 
+	r.Use(middleware.RequestID, middleware.Recoverer, middleware.Logger)
+
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
+
+	r.Get("/subscribe/{room_id}", a.handleSubscribe)
+
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Route("/rooms", func(r chi.Router) {
+			r.Post("/", a.handleCreateRoom)
+		})
+
+		r.Route("/{room_id}", func(r chi.Router) {
+			r.Post("/messages", a.handleCreateRoom)
+			r.Get("/messages", a.handleGetRoom)
+			r.Route("/messages/{message_id}", func(r chi.Router) {
+				r.Get("/{message_id}", a.handleGetMessage)
+				r.Patch("/reaction", a.handleReactToMessage)
+				r.Delete("/reaction", a.handleRemoveReaction)
+				r.Patch("/answered", a.handleMarkAsAnswered)
+			})
+		})
+	})
 	a.r = r
 	return a
 }
