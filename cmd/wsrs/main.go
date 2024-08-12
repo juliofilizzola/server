@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -52,7 +53,7 @@ func main() {
 	}()
 
 	quit := make(chan os.Signal, 1)
-
+	slog.Info("server started")
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 }
