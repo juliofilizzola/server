@@ -25,42 +25,6 @@ type apiHandler struct {
 	mutex      *sync.Mutex
 }
 
-// func (a apiHandler) handleCreateRoom(w http.ResponseWriter, r *http.Request) {
-// type _body struct {
-// 	Theme string `json:"theme"`
-// 	Name  string `json:"name"`
-// }
-//
-// var body _body
-// if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-// 	http.Error(w, err.Error(), http.StatusBadRequest)
-// 	return
-// }
-//
-// roomId := uuid.New()
-// var sendData a.queries.CreateRoomParams
-// sendData.ID = roomId
-// sendData.Theme = body.Theme
-// sendData.Name = body.Name
-//
-// room, err := a.queries.CreateRoom(context.Background(), sendData)
-// if err != nil {
-// 	slog.Error("error creating room", err)
-// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-// 	return
-// }
-// type response struct {
-// 	ID string `json:"id"`
-// }
-// data, _ := json.Marshal(response{
-// 	ID: room.ID.String(),
-// })
-//
-// w.Header().Set("Content-Type", "application/json")
-// w.Write(data)
-
-// }
-
 func (a apiHandler) handleCreateRoom(w http.ResponseWriter, r *http.Request) {
 	type createRoomRequest struct {
 		Theme string `json:"theme"`
