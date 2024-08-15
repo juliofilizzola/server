@@ -103,13 +103,13 @@ func (q *Queries) GetMessage(ctx context.Context, id uuid.UUID) (Message, error)
 	return i, err
 }
 
-const getRoom = `-- name: GetRoom :one
+const getRoomByID = `-- name: GetRoomByID :one
 SELECT id, theme, name FROM rooms
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetRoom(ctx context.Context, id uuid.UUID) (Room, error) {
-	row := q.db.QueryRow(ctx, getRoom, id)
+func (q *Queries) GetRoomByID(ctx context.Context, id uuid.UUID) (Room, error) {
+	row := q.db.QueryRow(ctx, getRoomByID, id)
 	var i Room
 	err := row.Scan(&i.ID, &i.Theme, &i.Name)
 	return i, err
