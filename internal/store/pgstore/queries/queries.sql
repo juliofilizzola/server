@@ -1,4 +1,4 @@
--- name: GetRoom :one
+-- name: GetRoomByID :one
 SELECT * FROM rooms
 WHERE id = $1 LIMIT 1;
 
