@@ -1,4 +1,4 @@
--- name: GetRoom :one
+-- name: GetRoomByID :one
 SELECT * FROM rooms
 WHERE id = $1 LIMIT 1;
 
@@ -17,8 +17,8 @@ LIMIT $1
 OFFSET $2;
 
 -- name: CreateRoom :one
-INSERT INTO rooms (id, theme, name)
-VALUES ($1, $2, $3)
+INSERT INTO rooms (theme, name)
+VALUES ($1, $2)
 RETURNING *;
 
 -- name: DeleteRoom :exec
@@ -66,3 +66,7 @@ UPDATE messages
 SET answered = false
 WHERE id = $1
 RETURNING *;
+
+-- name: GetMessage :one
+SELECT * FROM messages
+WHERE id = $1 LIMIT 1;

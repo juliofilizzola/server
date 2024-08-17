@@ -56,19 +56,18 @@ func (q *Queries) AnswerMessage(ctx context.Context, id uuid.UUID) (Message, err
 }
 
 const createRoom = `-- name: CreateRoom :one
-INSERT INTO rooms (id, theme, name)
-VALUES ($1, $2, $3)
+INSERT INTO rooms (theme, name)
+VALUES ($1, $2)
 RETURNING id, theme, name
 `
 
 type CreateRoomParams struct {
-	ID    uuid.UUID
 	Theme string
 	Name  string
 }
 
 func (q *Queries) CreateRoom(ctx context.Context, arg CreateRoomParams) (Room, error) {
-	row := q.db.QueryRow(ctx, createRoom, arg.ID, arg.Theme, arg.Name)
+	row := q.db.QueryRow(ctx, createRoom, arg.Theme, arg.Name)
 	var i Room
 	err := row.Scan(&i.ID, &i.Theme, &i.Name)
 	return i, err
@@ -84,13 +83,33 @@ func (q *Queries) DeleteRoom(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-const getRoom = `-- name: GetRoom :one
+const getMessage = `-- name: GetMessage :one
+SELECT id, room_id, message, reaction_count, answered, created_at, updated_at FROM messages
+WHERE id = $1 LIMIT 1
+`
+
+func (q *Queries) GetMessage(ctx context.Context, id uuid.UUID) (Message, error) {
+	row := q.db.QueryRow(ctx, getMessage, id)
+	var i Message
+	err := row.Scan(
+		&i.ID,
+		&i.RoomID,
+		&i.Message,
+		&i.ReactionCount,
+		&i.Answered,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getRoomByID = `-- name: GetRoomByID :one
 SELECT id, theme, name FROM rooms
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetRoom(ctx context.Context, id uuid.UUID) (Room, error) {
-	row := q.db.QueryRow(ctx, getRoom, id)
+func (q *Queries) GetRoomByID(ctx context.Context, id uuid.UUID) (Room, error) {
+	row := q.db.QueryRow(ctx, getRoomByID, id)
 	var i Room
 	err := row.Scan(&i.ID, &i.Theme, &i.Name)
 	return i, err
