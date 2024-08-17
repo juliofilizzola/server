@@ -85,7 +85,7 @@ func (a ApiHandler) HandleGetRoom(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJsonResponse(w, http.StatusOK, data)
 }
 
-func (a ApiHandler) HandlerGetRooms(w http.ResponseWriter, r *http.Request) {
+func (a ApiHandler) HandlerGetRooms(w http.ResponseWriter, _ *http.Request) {
 	params := pgstore.ListRoomsParams{
 		Limit:  10,
 		Offset: 0,
