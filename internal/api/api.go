@@ -13,6 +13,10 @@ import (
 	"github.com/juliofilizzola/server/internal/store/pgstore"
 )
 
+const (
+	maxCorsAge = 300 // Valor máximo não ignorado por nenhum dos principais navegadores
+)
+
 func NewHandler(q *pgstore.Queries) http.Handler {
 	a := handler.ApiHandler{
 		Queries: q,
@@ -35,7 +39,7 @@ func NewHandler(q *pgstore.Queries) http.Handler {
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: false,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
+		MaxAge:           maxCorsAge, // Maximum value not ignored by any of major browsers
 	}))
 
 	r.Get("/subscribe/{room_id}", a.HandleSubscribe)

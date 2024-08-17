@@ -82,11 +82,23 @@ func (a ApiHandler) HandleGetRoom(w http.ResponseWriter, r *http.Request) {
 
 	data, _ := json.Marshal(room)
 
-	err = utils.WriteJsonResponse(w, http.StatusOK, data)
+	utils.WriteJsonResponse(w, http.StatusOK, data)
+}
+
+func (a ApiHandler) HandlerGetRooms(w http.ResponseWriter, r *http.Request) {
+	params := pgstore.ListRoomsParams{
+		Limit:  10,
+		Offset: 0,
+	}
+	rooms, err := a.Queries.ListRooms(context.Background(), params)
 	if err != nil {
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
 		return
 	}
 
+	data, _ := json.Marshal(rooms)
+
+	utils.WriteJsonResponse(w, http.StatusOK, data)
 }
 
 func (a ApiHandler) HandleGetMessages(w http.ResponseWriter, r *http.Request) {
@@ -142,11 +154,61 @@ func (a ApiHandler) HandleReactToMessage(w http.ResponseWriter, r *http.Request)
 }
 
 func (a ApiHandler) HandleRemoveReaction(w http.ResponseWriter, r *http.Request) {
+	idMessage := chi.URLParam(r, "id")
+	messageID, err := uuid.Parse(idMessage)
+	if err != nil {
+		http.Error(w, "invalid message ID", http.StatusBadRequest)
+		return
+	}
 
+	_, err = a.Queries.GetMessage(context.Background(), messageID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			http.Error(w, "message not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	reaction, err := a.Queries.RemoveReactionFromMessage(context.Background(), messageID)
+	if err != nil {
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	data, _ := json.Marshal(reaction)
+
+	utils.WriteJsonResponse(w, http.StatusOK, data)
 }
 
 func (a ApiHandler) HandleMarkAsAnswered(w http.ResponseWriter, r *http.Request) {
+	idMessage := chi.URLParam(r, "id")
+	messageID, err := uuid.Parse(idMessage)
+	if err != nil {
+		http.Error(w, "invalid message ID", http.StatusBadRequest)
+		return
+	}
 
+	_, err = a.Queries.GetMessage(context.Background(), messageID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			http.Error(w, "message not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	resolved, err := a.Queries.AnswerMessage(context.Background(), messageID)
+	if err != nil {
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	data, _ := json.Marshal(resolved)
+
+	utils.WriteJsonResponse(w, http.StatusOK, data)
 }
 
 func (a ApiHandler) HandleSubscribe(w http.ResponseWriter, r *http.Request) {
@@ -177,7 +239,12 @@ func (a ApiHandler) HandleSubscribe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer func(c *websocket.Conn) {
-		c.Close()
+		err := c.Close()
+		if err != nil {
+			slog.Error("error closing connection", err)
+			http.Error(w, "something went wrong", http.StatusInternalServerError)
+			return
+		}
 	}(conn)
 
 	ctx, cancel := context.WithCancel(r.Context())
